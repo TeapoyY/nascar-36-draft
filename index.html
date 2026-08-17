@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0e14">
+<title>🏁 36-0: NASCAR Cup Draft — Can You Go Undefeated?</title>
+<meta name="description" content="Draft legendary NASCAR drivers across the eras and try to win every race in a 36-race Cup season. 96 legends. 6 eras. 36 races. 1 goal: 36-0.">
+<style>
+  :root {
+    --bg: #0a0e14;
+    --panel: #141a24;
+    --panel2: #1c2330;
+    --border: #2a3344;
+    --text: #e8eef5;
+    --muted: #8a96a8;
+    --accent: #ff6b00;          /* NASCAR yellow-orange */
+    --accent2: #ffd23f;
+    --good: #4ade80;
+    --bad: #f87171;
+    --gold: #fbbf24;
+    --shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body {
+    background:
+      radial-gradient(ellipse at top, rgba(255,107,0,0.08), transparent 50%),
+      linear-gradient(180deg, var(--bg) 0%, #050810 100%);
+  }
+  .wrap {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  header {
+    text-align: center;
+    padding: 20px 0 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 18px;
+  }
+  header h1 {
+    font-size: clamp(28px, 6vw, 44px);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--accent2) 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 4px;
+  }
+  header .tagline {
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--panel);
+    padding: 4px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .tab {
+    flex: 1;
+    min-width: 70px;
+    background: transparent;
+    color: var(--muted);
+    border: none;
+    padding: 10px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .tab.active {
+    background: var(--accent);
+    color: #000;
+  }
+  .tab:not(.active):hover {
+    color: var(--text);
+    background: var(--panel2);
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .stat .v {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--accent2);
+  }
+  .stat .l {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .era-tag {
+    display: inline-block;
+    background: var(--accent);
+    color: #000;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    margin-right: 4px;
+  }
+  .driver-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+    gap: 8px;
+  }
+  .driver-card {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    user-select: none;
+  }
+  .driver-card:hover:not(.drafted):not(.disabled) {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255,107,0,0.2);
+  }
+  .driver-card.drafted {
+    background: var(--accent);
+    border-color: var(--accent2);
+    color: #000;
+    cursor: default;
+    opacity: 0.85;
+  }
+  .driver-card.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  .driver-card .ovr {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 10px;
+    font-weight: 900;
+    color: var(--accent2);
+    background: rgba(0,0,0,0.4);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .driver-card.drafted .ovr {
+    background: rgba(255,255,255,0.3);
+    color: #000;
+  }
+  .driver-card .name {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 4px;
+    margin-right: 28px;
+  }
+  .driver-card .team {
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.1;
+  }
+  .driver-card.drafted .team {
+    color: rgba(0,0,0,0.7);
+  }
+  .driver-card .era-mini {
+    font-size: 9px;
+    color: var(--accent);
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .draft-status {
+    background: linear-gradient(135deg, var(--panel2) 0%, var(--panel) 100%);
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .draft-status.full {
+    border-style: solid;
+    border-color: var(--accent);
+  }
+  .draft-status .count {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--accent2);
+    margin-bottom: 4px;
+  }
+  .draft-status .help {
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 800;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    width: 100%;
+    letter-spacing: 0.02em;
+  }
+  .btn:hover:not(:disabled) {
+    background: var(--accent2);
+    transform: translateY(-1px);
+  }
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .btn-secondary {
+    background: var(--panel2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background: var(--border);
+  }
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .btn-row .btn { flex: 1; }
+  .race-log {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 12px 0;
+    padding: 4px;
+  }
+  .race-row {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    background: var(--panel2);
+    border-left: 4px solid var(--border);
+    font-size: 13px;
+  }
+  .race-row.win {
+    border-left-color: var(--good);
+    background: rgba(74, 222, 128, 0.08);
+  }
+  .race-row.loss {
+    border-left-color: var(--bad);
+    background: rgba(248, 113, 113, 0.08);
+  }
+  .race-num {
+    width: 36px;
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 11px;
+  }
+  .race-name {
+    flex: 1;
+    font-weight: 600;
+  }
+  .race-result {
+    width: 80px;
+    text-align: right;
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .race-row.win .race-result { color: var(--good); }
+  .race-row.loss .race-result { color: var(--bad); }
+  .race-pts {
+    width: 50px;
+    text-align: right;
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .finale {
+    text-align: center;
+    padding: 30px 16px;
+  }
+  .finale .big {
+    font-size: clamp(40px, 9vw, 64px);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .finale .sub {
+    font-size: 16px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 700;
+    margin: 4px;
+  }
+  .badge.gold {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #000;
+    border-color: #f59e0b;
+  }
+  .badge.green {
+    background: rgba(74, 222, 128, 0.2);
+    color: var(--good);
+    border-color: var(--good);
+  }
+  .badge.red {
+    background: rgba(248, 113, 113, 0.2);
+    color: var(--bad);
+    border-color: var(--bad);
+  }
+  .share-card {
+    background: var(--panel2);
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px 0;
+    text-align: center;
+  }
+  .share-card .label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    letter-spacing: 0.1em;
+  }
+  .share-card .record {
+    font-size: 42px;
+    font-weight: 900;
+    color: var(--accent2);
+    font-family: "Courier New", monospace;
+    letter-spacing: 0.05em;
+  }
+  .footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 11px;
+    padding: 20px 0 30px;
+    border-top: 1px solid var(--border);
+    margin-top: 30px;
+  }
+  .podium {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 8px;
+    margin: 16px 0;
+  }
+  .podium-place {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 8px;
+    text-align: center;
+    flex: 1;
+  }
+  .podium-place .pos {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .podium-place .nm {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .podium-place .pts {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--accent2);
+  }
+  .podium-place.first {
+    border-color: var(--gold);
+    background: rgba(251, 191, 36, 0.1);
+    transform: translateY(-8px);
+  }
+  .podium-place.first .pts { color: var(--gold); }
+  details {
+    margin: 12px 0;
+  }
+  details summary {
+    cursor: pointer;
+    padding: 8px;
+    background: var(--panel2);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  details[open] summary {
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .roster {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px;
+  }
+  .roster-chip {
+    background: var(--accent);
+    color: #000;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  @media (max-width: 480px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .driver-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🏁 36-0: NASCAR Cup Draft</h1>
+    <div class="tagline">Draft legends. Race 36. Win all. Or die trying.</div>
+  </header>
+
+  <!-- DRAFT SCREEN -->
+  <div id="screen-draft">
+    <div class="stats">
+      <div class="stat"><div class="v" id="stat-picked">0</div><div class="l">Picked</div></div>
+      <div class="stat"><div class="v">6</div><div class="l">Needed</div></div>
+      <div class="stat"><div class="v" id="stat-avg">—</div><div class="l">Avg OVR</div></div>
+      <div class="stat"><div class="v">36</div><div class="l">Races</div></div>
+    </div>
+
+    <div class="draft-status" id="draft-status">
+      <div class="count" id="count-text">Pick 6 NASCAR Cup drivers</div>
+      <div class="help" id="help-text">Tap a driver to draft. Mix eras for synergy bonuses.</div>
+    </div>
+
+    <div class="tabs" id="era-tabs"></div>
+
+    <div class="panel">
+      <div class="driver-grid" id="driver-grid"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="reset-btn">Reset Draft</button>
+      <button class="btn" id="start-btn" disabled>Start Season →</button>
+    </div>
+  </div>
+
+  <!-- SEASON SCREEN -->
+  <div id="screen-season" hidden>
+    <div class="stats">
+      <div class="stat"><div class="v" id="season-wins">0</div><div class="l">Wins</div></div>
+      <div class="stat"><div class="v" id="season-streak">0</div><div class="l">Streak</div></div>
+      <div class="stat"><div class="v" id="season-points">0</div><div class="l">Points</div></div>
+      <div class="stat"><div class="v" id="season-race-num">1</div><div class="l">Race</div></div>
+    </div>
+
+    <div class="panel" id="race-panel">
+      <div style="text-align:center; padding:20px;">
+        <div style="font-size:11px; color:var(--muted); letter-spacing:0.1em; margin-bottom:6px;">RACE <span id="race-counter">1</span> OF 36</div>
+        <div id="race-title" style="font-size:22px; font-weight:900; color:var(--accent2); margin-bottom:4px;">—</div>
+        <div id="race-track" style="font-size:13px; color:var(--muted); margin-bottom:16px;">—</div>
+        <button class="btn" id="race-btn">▶ Simulate Race</button>
+        <div class="btn-row" id="race-next-row" hidden>
+          <button class="btn btn-secondary" id="race-detail-btn">📊 Race Detail</button>
+          <button class="btn" id="race-next-btn">Next Race →</button>
+        </div>
+      </div>
+      <div id="race-detail" hidden></div>
+    </div>
+
+    <details>
+      <summary>📜 Season Log</summary>
+      <div class="race-log" id="race-log"></div>
+    </details>
+  </div>
+
+  <!-- FINALE SCREEN -->
+  <div id="screen-finale" hidden>
+    <div class="finale">
+      <div class="big" id="finale-record">—</div>
+      <div class="sub" id="finale-title">—</div>
+      <div id="finale-badges" style="margin-bottom:20px;"></div>
+
+      <div class="share-card">
+        <div class="label">SHARE YOUR SEASON</div>
+        <div class="record" id="share-record">—</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:6px;">#NASCAR36Zero #UndefeatedSeason</div>
+      </div>
+
+      <details>
+        <summary>🏆 Final Standings (Playoff Cutoff: Top 16)</summary>
+        <div class="podium" id="podium"></div>
+        <div id="full-standings"></div>
+      </details>
+
+      <details>
+        <summary>📜 Full Season Log (All 36 Races)</summary>
+        <div class="race-log" id="finale-log"></div>
+      </details>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="replay-btn">🔄 New Season</button>
+        <button class="btn" id="share-btn">📋 Copy Share Text</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Made for 🏁 NASCAR fans · 96 legends · 6 eras · 1 dream<br>
+    A tribute to <a href="https://github.com/TeapoyY/squad-draft-football" style="color:var(--accent);">38-0</a> & <a href="https://github.com/TeapoyY/app-pixelgp-web" style="color:var(--accent);">24-0</a> drafting lineage.
+  </div>
+</div>
+
+<script>
+// ==========================================
+// NASCAR 36-0: Cup Draft - Single HTML MVP
+// Reuses the X-0 Sports template proven by
+// NFL 38-0 (7/30) and F1 24-0 (8/1)
+// ==========================================
+
+// --- SEEDED RNG ---
+function mulberry32(s) {
+    return function() {
+        s |= 0; s = (s + 0x6D2B79F5) | 0;
+        let t = Math.imul(s ^ (s >>> 15), 1 | s);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+// --- NASCAR DRIVERS (96 legends across 6 eras) ---
+// OVR: 70-99 scale. Each era: 1970s/1980s/1990s/2000s/2010s/2020s
+const DRIVERS = [
+    // Era 1: 1970s (Stock car pioneers)
+    { id: 1, name: "Richard Petty", team: "STP/Petty Enterprises", era: 1, ovr: 99 },
+    { id: 2, name: "David Pearson", team: "Wood Brothers Racing", era: 1, ovr: 95 },
+    { id: 3, name: "Bobby Allison", team: "Matador/Holly Farms", era: 1, ovr: 91 },
+    { id: 4, name: "Darrell Waltrip", team: "DiGard Motorsports", era: 1, ovr: 90 },
+    { id: 5, name: "Cale Yarborough", team: "Junior Johnson", era: 1, ovr: 96 },
+    { id: 6, name: "Benny Parsons", team: "L.G. DeWitt", era: 1, ovr: 86 },
+    { id: 7, name: "Lee Roy Yarbrough", team: "Junior Johnson", era: 1, ovr: 84 },
+    { id: 8, name: "Buddy Baker", team: "Bud Moore Eng.", era: 1, ovr: 87 },
+    { id: 9, name: "Bobby Isaac", team: "Nord Krauskopf", era: 1, ovr: 83 },
+    { id: 10, name: "Donnie Allison", team: "Holly Farms", era: 1, ovr: 82 },
+    { id: 11, name: "Neil Bonnett", team: "Jim Stacy/Henry", era: 1, ovr: 81 },
+    { id: 12, name: "A.J. Foyt", team: "Sherman-Griffin", era: 1, ovr: 88 },
+    { id: 13, name: "Pete Hamilton", team: "Petty Enterprises", era: 1, ovr: 80 },
+    { id: 14, name: "James Hylton", team: "Hylton Engineering", era: 1, ovr: 75 },
+    { id: 15, name: "Rex White", team: "Rex White Motors", era: 1, ovr: 77 },
+    { id: 16, name: "Fred Lorenzen", team: "Holman-Moody", era: 1, ovr: 85 },
+
+    // Era 2: 1980s (The Showdown Era)
+    { id: 17, name: "Dale Earnhardt", team: "Richard Childress", era: 2, ovr: 99 },
+    { id: 18, name: "Darrell Waltrip", team: "Junior Johnson", era: 2, ovr: 95 },
+    { id: 19, name: "Bill Elliott", team: "Melling Racing", era: 2, ovr: 92 },
+    { id: 20, name: "Rusty Wallace", team: "Blue Max Motorsports", era: 2, ovr: 89 },
+    { id: 21, name: "Bobby Allison", team: "Stavola Bros", era: 2, ovr: 90 },
+    { id: 22, name: "Terry Labonte", team: "Hagan Racing", era: 2, ovr: 88 },
+    { id: 23, name: "Ricky Rudd", team: "Bud Moore Eng.", era: 2, ovr: 87 },
+    { id: 24, name: "Tim Richmond", team: "Hendrick Motorsports", era: 2, ovr: 86 },
+    { id: 25, name: "Geoff Bodine", team: "Hendrick Motorsports", era: 2, ovr: 85 },
+    { id: 26, name: "Ken Schrader", team: "Hendrick/Stull", era: 2, ovr: 83 },
+    { id: 27, name: "Kyle Petty", team: "Wood Bros/Petty", era: 2, ovr: 82 },
+    { id: 28, name: "Benny Parsons", team: "Hendrick Motorsports", era: 2, ovr: 84 },
+    { id: 29, name: "Morgan Shepherd", team: "Wood Brothers", era: 2, ovr: 79 },
+    { id: 30, name: "Alan Kulwicki", team: "AK Racing", era: 2, ovr: 88 },
+    { id: 31, name: "Davey Allison", team: "Hagan Racing", era: 2, ovr: 84 },
+    { id: 32, name: "Harry Gant", team: "Skaggs Alpha", era: 2, ovr: 86 },
+
+    // Era 3: 1990s (The Modern Era begins)
+    { id: 33, name: "Jeff Gordon", team: "Hendrick Motorsports", era: 3, ovr: 99 },
+    { id: 34, name: "Dale Jarrett", team: "Robert Yates Racing", era: 3, ovr: 92 },
+    { id: 35, name: "Rusty Wallace", team: "Penske Racing", era: 3, ovr: 93 },
+    { id: 36, name: "Mark Martin", team: "Roush Racing", era: 3, ovr: 91 },
+    { id: 37, name: "Dale Earnhardt", team: "Richard Childress", era: 3, ovr: 97 },
+    { id: 38, name: "Terry Labonte", team: "Hendrick Motorsports", era: 3, ovr: 89 },
+    { id: 39, name: "Ernie Irvan", team: "Yates/Roush", era: 3, ovr: 86 },
+    { id: 40, name: "Ken Schrader", team: "Andy Petree", era: 3, ovr: 82 },
+    { id: 41, name: "Bobby Labonte", team: "Joe Gibbs Racing", era: 3, ovr: 88 },
+    { id: 42, name: "Jeremy Mayfield", team: "Penske Racing", era: 3, ovr: 84 },
+    { id: 43, name: "John Andretti", team: "Petty Enterprises", era: 3, ovr: 81 },
+    { id: 44, name: "Bill Elliott", team: "Evernham Motorsports", era: 3, ovr: 87 },
+    { id: 45, name: "Rick Mast", team: "Butch Mock", era: 3, ovr: 76 },
+    { id: 46, name: "Geoff Bodine", team: "Geoff Bodine Racing", era: 3, ovr: 80 },
+    { id: 47, name: "Michael Waltrip", team: "Wood Brothers", era: 3, ovr: 83 },
+    { id: 48, name: "Steve Grissom", team: "Diamond Ridge", era: 3, ovr: 75 },
+
+    // Era 4: 2000s (The 7-Time era)
+    { id: 49, name: "Jimmie Johnson", team: "Hendrick Motorsports", era: 4, ovr: 99 },
+    { id: 50, name: "Tony Stewart", team: "Joe Gibbs Racing", era: 4, ovr: 96 },
+    { id: 51, name: "Jeff Gordon", team: "Hendrick Motorsports", era: 4, ovr: 95 },
+    { id: 52, name: "Kevin Harvick", team: "Richard Childress", era: 4, ovr: 92 },
+    { id: 53, name: "Carl Edwards", team: "Roush Fenway", era: 4, ovr: 90 },
+    { id: 54, name: "Matt Kenseth", team: "Roush Racing", era: 4, ovr: 91 },
+    { id: 55, name: "Kurt Busch", team: "Penske Racing", era: 4, ovr: 89 },
+    { id: 56, name: "Dale Earnhardt Jr.", team: "Hendrick Motorsports", era: 4, ovr: 90 },
+    { id: 57, name: "Jeff Burton", team: "Roush Racing", era: 4, ovr: 87 },
+    { id: 58, name: "Ryan Newman", team: "Penske Racing", era: 4, ovr: 88 },
+    { id: 59, name: "Greg Biffle", team: "Roush Racing", era: 4, ovr: 87 },
+    { id: 60, name: "Mark Martin", team: "Ginn Racing", era: 4, ovr: 85 },
+    { id: 61, name: "Clint Bowyer", team: "RCR", era: 4, ovr: 83 },
+    { id: 62, name: "Brian Vickers", team: "Hendrick Motorsports", era: 4, ovr: 82 },
+    { id: 63, name: "Kasey Kahne", team: "Evernham/Gillett", era: 4, ovr: 86 },
+    { id: 64, name: "Jamie McMurray", team: "Ganassi Racing", era: 4, ovr: 81 },
+
+    // Era 5: 2010s (Championship 4 era)
+    { id: 65, name: "Kyle Busch", team: "Joe Gibbs Racing", era: 5, ovr: 95 },
+    { id: 66, name: "Kevin Harvick", team: "Stewart-Haas Racing", era: 5, ovr: 94 },
+    { id: 67, name: "Brad Keselowski", team: "Team Penske", era: 5, ovr: 91 },
+    { id: 68, name: "Joey Logano", team: "Team Penske", era: 5, ovr: 92 },
+    { id: 69, name: "Martin Truex Jr.", team: "Furniture Row", era: 5, ovr: 93 },
+    { id: 70, name: "Chase Elliott", team: "Hendrick Motorsports", era: 5, ovr: 91 },
+    { id: 71, name: "Jimmie Johnson", team: "Hendrick Motorsports", era: 5, ovr: 89 },
+    { id: 72, name: "Denny Hamlin", team: "Joe Gibbs Racing", era: 5, ovr: 90 },
+    { id: 73, name: "Ryan Blaney", team: "Team Penske", era: 5, ovr: 88 },
+    { id: 74, name: "Kurt Busch", team: "Stewart-Haas", era: 5, ovr: 86 },
+    { id: 75, name: "Kyle Larson", team: "Chip Ganassi", era: 5, ovr: 90 },
+    { id: 76, name: "Austin Dillon", team: "Richard Childress", era: 5, ovr: 84 },
+    { id: 77, name: "Erik Jones", team: "Joe Gibbs Racing", era: 5, ovr: 83 },
+    { id: 78, name: "Alex Bowman", team: "Hendrick Motorsports", era: 5, ovr: 85 },
+    { id: 79, name: "William Byron", team: "Hendrick Motorsports", era: 5, ovr: 87 },
+    { id: 80, name: "Daniel Suarez", team: "Stewart-Haas", era: 5, ovr: 82 },
+
+    // Era 6: 2020s (NextGen era)
+    { id: 81, name: "Kyle Larson", team: "Hendrick Motorsports", era: 6, ovr: 95 },
+    { id: 82, name: "Chase Elliott", team: "Hendrick Motorsports", era: 6, ovr: 94 },
+    { id: 83, name: "Ryan Blaney", team: "Team Penske", era: 6, ovr: 92 },
+    { id: 84, name: "Joey Logano", team: "Team Penske", era: 6, ovr: 93 },
+    { id: 85, name: "William Byron", team: "Hendrick Motorsports", era: 6, ovr: 91 },
+    { id: 86, name: "Denny Hamlin", team: "Joe Gibbs Racing", era: 6, ovr: 91 },
+    { id: 87, name: "Tyler Reddick", team: "23XI Racing", era: 6, ovr: 90 },
+    { id: 88, name: "Christopher Bell", team: "Joe Gibbs Racing", era: 6, ovr: 89 },
+    { id: 89, name: "Ross Chastain", team: "Trackhouse Racing", era: 6, ovr: 87 },
+    { id: 90, name: "Bubba Wallace", team: "23XI Racing", era: 6, ovr: 85 },
+    { id: 91, name: "Austin Cindric", team: "Team Penske", era: 6, ovr: 84 },
+    { id: 92, name: "Chase Briscoe", team: "Stewart-Haas", era: 6, ovr: 86 },
+    { id: 93, name: "AJ Allmendinger", team: "Kaulig Racing", era: 6, ovr: 82 },
+    { id: 94, name: "Daniel Hemric", team: "Kaulig Racing", era: 6, ovr: 78 },
+    { id: 95, name: "Todd Gilliland", team: "Front Row Motorsports", era: 6, ovr: 80 },
+    { id: 96, name: "Carson Hocevar", team: "Spire Motorsports", era: 6, ovr: 81 }
+];
+
+const ERA_NAMES = {
+    1: "1970s",
+    2: "1980s",
+    3: "1990s",
+    4: "2000s",
+    5: "2010s",
+    6: "2020s"
+};
+
+const ERA_LABELS = {
+    1: "70s",
+    2: "80s",
+    3: "90s",
+    4: "00s",
+    5: "10s",
+    6: "20s"
+};
+
+// Realistic NASCAR Cup schedule (36 races, modern NextGen era ordering)
+const SCHEDULE = [
+    { name: "Daytona 500", track: "Daytona International Speedway", type: "speedway" },
+    { name: "Wreckers 400", track: "Auto Club Speedway", type: "intermediate" },
+    { name: "Pennzoil 400", track: "Las Vegas Motor Speedway", type: "intermediate" },
+    { name: "EchoPark 500", track: "Circuit of the Americas", type: "road" },
+    { name: "Toyota Owners 400", track: "Richmond Raceway", type: "short" },
+    { name: "Food City 500", track: "Bristol Motor Speedway", type: "short" },
+    { name: "NOCO 400", track: "Martinsville Speedway", type: "short" },
+    { name: "GEICO 500", track: "Talladega Superspeedway", type: "superspeedway" },
+    { name: "Auto Trader 400", track: "Dover Motor Speedway", type: "intermediate" },
+    { name: "AdventHealth 400", track: "Kansas Speedway", type: "intermediate" },
+    { name: "Goodyear 400", track: "Darlington Raceway", type: "intermediate" },
+    { name: "Coca-Cola 600", track: "Charlotte Motor Speedway", type: "intermediate" },
+    { name: "Enjoy Illinois 300", track: "World Wide Tech Raceway", type: "intermediate" },
+    { name: "Toyota/Save Mart 350", track: "Sonoma Raceway", type: "road" },
+    { name: "Ally 400", track: "Nashville Superspeedway", type: "intermediate" },
+    { name: "Grant Park 220", track: "Chicago Street Course", type: "street" },
+    { name: "Quaker State 400", track: "Atlanta Motor Speedway", type: "intermediate" },
+    { name: "M&M's Fan Appreciation 400", track: "Pocono Raceway", type: "intermediate" },
+    { name: "Ambetter Get Healthy 250", track: "New Hampshire Motor Speedway", type: "short" },
+    { name: "Cook Out 400", track: "Richmond Raceway", type: "short" },
+    { name: "FireKeepers Casino 400", track: "Michigan International Speedway", type: "intermediate" },
+    { name: "HighPoint.com 400", track: "Indianapolis Motor Speedway RC", type: "road" },
+    { name: "Go Bowling at The Glen", track: "Watkins Glen International", type: "road" },
+    { name: "Cook Out Southern 500", track: "Darlington Raceway", type: "intermediate" },
+    { name: "Hollywood Casino 400", track: "Kansas Speedway", type: "intermediate" },
+    { name: "Bass Pro Shops Night Race", track: "Bristol Motor Speedway", type: "short" },
+    { name: "YellaWood 500", track: "Talladega Superspeedway", type: "superspeedway" },
+    { name: "Bank of America Roval 400", track: "Charlotte Roval", type: "road" },
+    { name: "South Point 400", track: "Las Vegas Motor Speedway", type: "intermediate" },
+    { name: "Dixie Vodka 400", track: "Homestead-Miami Speedway", type: "intermediate" },
+    { name: "Xfinity 500", track: "Martinsville Speedway", type: "short" },
+    { name: "Season Finale 500", track: "Phoenix Raceway", type: "intermediate" },
+    { name: "Championship Race #1", track: "Homestead-Miami Speedway", type: "intermediate" },
+    { name: "Championship Race #2", track: "Martinsville Speedway", type: "short" },
+    { name: "Championship Race #3", track: "Phoenix Raceway", type: "intermediate" },
+    { name: "Champion's Crown", track: "Homestead-Miami Speedway", type: "intermediate" }
+];
+
+// --- GAME STATE ---
+let state = {
+    phase: 'draft',  // draft / season / finale
+    drafted: [],
+    selectedEra: 1,
+    season: null,
+    rng: null,
+    seed: 0
+};
+
+// --- WIN PROBABILITY ---
+// Reuses the F1 24-0 + NFL 38-0 calibrated formula
+function winProb(ovr, raceType, isSuperspeedway) {
+    // Base: 0.05 to 0.95 based on OVR
+    let base = Math.min(0.95, Math.max(0.05, (ovr - 70) / 30));
+
+    // Track-type bonuses (NASCAR is multi-discipline)
+    const bonuses = {
+        'superspeedway': 0.02,  // pack racing reduces skill advantage
+        'short': -0.03,         // chaos higher
+        'road': -0.02,
+        'street': -0.04,
+        'intermediate': 0.0     // neutral
+    };
+    base += (bonuses[raceType] || 0);
+
+    return Math.min(0.97, Math.max(0.03, base));
+}
+
+// --- ERA SYNERGY BONUS ---
+// Picking drivers from same team or same era gives small bonus
+function eraSynergy(drafted) {
+    const eras = drafted.map(d => d.era);
+    const eraCounts = {};
+    eras.forEach(e => eraCounts[e] = (eraCounts[e] || 0) + 1);
+    const maxCount = Math.max(...Object.values(eraCounts));
+    // +1.5 OVR for each extra driver from same era beyond the first
+    return (maxCount - 1) * 1.5;
+}
+
+// --- SIMULATE A SINGLE RACE ---
+function simulateRace(playerOVR, raceType, rng) {
+    // Generate AI field of 35 other cars with realistic OVR distribution
+    const field = [];
+    for (let i = 0; i < 35; i++) {
+        // AI drivers weighted around OVR 78-86 (mid-tier teams)
+        const aiOVR = 75 + Math.floor(rng() * 14);
+        field.push({ name: `AI #${i+2}`, ovr: aiOVR, type: raceType });
+    }
+
+    // Add player
+    field.push({ name: 'YOU', ovr: playerOVR, type: raceType, isPlayer: true });
+
+    // Each car: simulate a position based on OVR + variance
+    field.forEach(car => {
+        const prob = winProb(car.ovr, raceType);
+        // Variance: ±10% per race
+        const variance = (rng() - 0.5) * 0.20;
+        const adjusted = Math.min(0.97, Math.max(0.03, prob + variance));
+        car.score = rng() < adjusted ? 1 : 0;  // simple binary
+    });
+
+    // Add pack-racing chaos for superspeedways (top 20 can win)
+    if (raceType === 'superspeedway') {
+        field.forEach(car => {
+            if (!car.isPlayer && car.ovr < 85) {
+                car.score += rng() * 0.4;  // more chaos
+            }
+        });
+    }
+
+    // Sort by score, get player's position
+    field.sort((a, b) => b.score - a.score);
+    const playerPos = field.findIndex(c => c.isPlayer) + 1;
+    return { playerPos, field };
+}
+
+// --- POINTS CALCULATION (Modern NASCAR: 40-2 with stage points) ---
+function pointsForPos(pos) {
+    // Win: 35 base + 5 bonus + stage points = ~40
+    // Top 5: 32-40
+    // Top 10: 22-32
+    // 11th-20th: 16-22
+    // 21st-36th: 1-15
+    if (pos === 1) return 40;
+    if (pos === 2) return 35;
+    if (pos === 3) return 34;
+    if (pos === 4) return 33;
+    if (pos === 5) return 32;
+    if (pos <= 10) return 31 - (pos - 6);
+    if (pos <= 15) return 23 - (pos - 11);
+    if (pos <= 20) return 19 - (pos - 16);
+    return Math.max(1, 14 - (pos - 21));
+}
+
+// --- UI HELPERS ---
+function $(id) { return document.getElementById(id); }
+function show(id) { $(id).hidden = false; }
+function hide(id) { $(id).hidden = true; }
+
+function switchScreen(name) {
+    hide('screen-draft');
+    hide('screen-season');
+    hide('screen-finale');
+    show(`screen-${name}`);
+    state.phase = name;
+}
+
+// --- ERA TABS RENDER ---
+function renderTabs() {
+    const tabs = $('era-tabs');
+    tabs.innerHTML = '';
+    for (let era = 1; era <= 6; era++) {
+        const btn = document.createElement('button');
+        btn.className = 'tab' + (era === state.selectedEra ? ' active' : '');
+        btn.textContent = ERA_LABELS[era];
+        btn.onclick = () => {
+            state.selectedEra = era;
+            renderTabs();
+            renderDrivers();
+        };
+        tabs.appendChild(btn);
+    }
+}
+
+// --- DRIVERS RENDER ---
+function renderDrivers() {
+    const grid = $('driver-grid');
+    grid.innerHTML = '';
+    const drivers = DRIVERS.filter(d => d.era === state.selectedEra);
+    drivers.forEach(d => {
+        const drafted = state.drafted.some(x => x.id === d.id);
+        const card = document.createElement('div');
+        card.className = 'driver-card' + (drafted ? ' drafted' : '');
+        card.innerHTML = `
+            <div class="ovr">${d.ovr}</div>
+            <div class="name">${d.name}</div>
+            <div class="team">${d.team}</div>
+        `;
+        if (!drafted) {
+            card.onclick = () => draftDriver(d);
+        }
+        grid.appendChild(card);
+    });
+}
+
+// --- DRAFT LOGIC ---
+function draftDriver(d) {
+    if (state.drafted.length >= 6) return;
+    if (state.drafted.some(x => x.id === d.id)) return;
+    state.drafted.push(d);
+    updateDraftUI();
+    renderDrivers();
+}
+
+function undraftDriver(id) {
+    state.drafted = state.drafted.filter(d => d.id !== id);
+    updateDraftUI();
+    renderDrivers();
+}
+
+function updateDraftUI() {
+    const n = state.drafted.length;
+    $('stat-picked').textContent = n;
+    if (n > 0) {
+        const avg = (state.drafted.reduce((s, d) => s + d.ovr, 0) / n + eraSynergy(state.drafted)).toFixed(0);
+        $('stat-avg').textContent = avg;
+    } else {
+        $('stat-avg').textContent = '—';
+    }
+
+    const status = $('draft-status');
+    const countText = $('count-text');
+    const helpText = $('help-text');
+    if (n === 0) {
+        countText.textContent = 'Pick 6 NASCAR Cup drivers';
+        helpText.textContent = 'Tap a driver to draft. Mix eras for synergy bonuses.';
+        status.classList.remove('full');
+    } else if (n < 6) {
+        countText.textContent = `${n}/6 drivers drafted`;
+        helpText.textContent = `Pick ${6 - n} more. Avg OVR: ${$('stat-avg').textContent}`;
+        status.classList.remove('full');
+    } else {
+        countText.textContent = '🏁 Roster Complete!';
+        helpText.textContent = `Avg OVR: ${$('stat-avg').textContent} (incl +${eraSynergy(state.drafted).toFixed(1)} era synergy)`;
+        status.classList.add('full');
+    }
+
+    // Show chips
+    const existingChips = status.querySelectorAll('.roster-chip');
+    existingChips.forEach(c => c.remove());
+    if (n > 0) {
+        const rosterDiv = document.createElement('div');
+        rosterDiv.className = 'roster';
+        rosterDiv.style.marginTop = '10px';
+        state.drafted.forEach(d => {
+            const chip = document.createElement('span');
+            chip.className = 'roster-chip';
+            chip.textContent = `${d.name} ${d.ovr}`;
+            chip.onclick = () => undraftDriver(d.id);
+            chip.style.cursor = 'pointer';
+            chip.title = 'Tap to remove';
+            rosterDiv.appendChild(chip);
+        });
+        status.appendChild(rosterDiv);
+    }
+
+    $('start-btn').disabled = n !== 6;
+}
+
+// --- RESET ---
+$('reset-btn').onclick = () => {
+    state.drafted = [];
+    updateDraftUI();
+    renderDrivers();
+};
+
+// --- START SEASON ---
+$('start-btn').onclick = () => {
+    // Pick highest-OVR drafted driver as primary; pool all 6 for variation
+    state.seed = Date.now();
+    state.rng = mulberry32(state.seed);
+    state.season = {
+        results: [],  // [{ race, name, pos, points }]
+        standings: {},  // driver.id -> total points
+        playerWins: 0,
+        bestStreak: 0,
+        currentStreak: 0,
+        primaryDriver: state.drafted.sort((a, b) => b.ovr - a.ovr)[0],
+        allDrafted: state.drafted
+    };
+    // Init standings
+    state.season.standings[state.season.primaryDriver.id] = 0;
+    state.drafted.forEach(d => state.season.standings[d.id] = 0);
+
+    switchScreen('season');
+    $('race-counter').textContent = '1';
+    $('race-counter-end') && ($('race-counter-end').textContent = '1');
+    showNextRace();
+};
+
+function showNextRace() {
+    const i = state.season.results.length;
+    if (i >= SCHEDULE.length) {
+        showFinale();
+        return;
+    }
+    const race = SCHEDULE[i];
+    $('race-counter').textContent = (i + 1);
+    $('season-race-num').textContent = (i + 1);
+    $('race-title').textContent = race.name;
+    $('race-track').textContent = `${race.track} · ${race.type}`;
+    show('race-btn');
+    hide('race-next-row');
+    hide('race-detail');
+}
+
+$('race-btn').onclick = () => {
+    const i = state.season.results.length;
+    const race = SCHEDULE[i];
+    // Player uses best drafted driver as primary; pool of 6 allows occasional rotation
+    // For simplicity: use primary driver for entire season
+    const playerOVR = state.season.primaryDriver.ovr + eraSynergy(state.season.allDrafted);
+    const result = simulateRace(playerOVR, race.type, state.rng);
+    const pts = pointsForPos(result.playerPos);
+    const win = result.playerPos === 1;
+    state.season.results.push({
+        race: i + 1,
+        name: race.name,
+        track: race.track,
+        type: race.type,
+        pos: result.playerPos,
+        points: pts,
+        win: win
+    });
+
+    // Update standings
+    state.season.standings[state.season.primaryDriver.id] += pts;
+
+    // Streak
+    if (win) {
+        state.season.playerWins++;
+        state.season.currentStreak++;
+        if (state.season.currentStreak > state.season.bestStreak) {
+            state.season.bestStreak = state.season.currentStreak;
+        }
+    } else {
+        state.season.currentStreak = 0;
+    }
+
+    // Show race detail (top 5)
+    let detailHTML = '<div style="font-size:11px; color:var(--muted); letter-spacing:0.1em; margin-bottom:6px;">TOP 5 FINISH</div>';
+    result.field.slice(0, 5).forEach((car, idx) => {
+        const pos = idx + 1;
+        const isYou = car.isPlayer;
+        detailHTML += `<div class="race-row ${isYou ? 'win' : ''}" style="border-left-color:${isYou ? 'var(--accent2)' : 'var(--border)'}">
+            <div class="race-num">P${pos}</div>
+            <div class="race-name">${car.name}${isYou ? ' 🏁' : ''}</div>
+            <div class="race-result">OVR ${car.ovr}</div>
+        </div>`;
+    });
+    $('race-detail').innerHTML = detailHTML;
+
+    // Update season UI
+    $('season-wins').textContent = state.season.playerWins;
+    $('season-streak').textContent = state.season.currentStreak;
+    $('season-points').textContent = state.season.results.reduce((s, r) => s + r.points, 0);
+
+    // Update race log
+    const logRow = document.createElement('div');
+    logRow.className = `race-row ${win ? 'win' : 'loss'}`;
+    logRow.innerHTML = `
+        <div class="race-num">R${i + 1}</div>
+        <div class="race-name">${race.name}</div>
+        <div class="race-result">P${result.playerPos}${win ? ' 🏆' : ''}</div>
+        <div class="race-pts">+${pts}</div>
+    `;
+    $('race-log').prepend(logRow);
+
+    // Swap buttons
+    hide('race-btn');
+    show('race-next-row');
+    if (i >= SCHEDULE.length - 1) {
+        $('race-next-btn').textContent = 'See Final Standings →';
+    } else {
+        $('race-next-btn').textContent = 'Next Race →';
+    }
+};
+
+$('race-detail-btn').onclick = () => {
+    const d = $('race-detail');
+    if (d.hidden) show('race-detail');
+    else hide('race-detail');
+};
+
+$('race-next-btn').onclick = () => {
+    showNextRace();
+};
+
+// --- FINALE ---
+function showFinale() {
+    switchScreen('finale');
+    const wins = state.season.playerWins;
+    const totalRaces = SCHEDULE.length;
+
+    // Record (Wins-Losses)
+    const record = `${wins}-${totalRaces - wins}`;
+    $('finale-record').textContent = record;
+    $('share-record').textContent = record;
+
+    // Title
+    let title = '';
+    if (wins === 36) title = '🏆 UNDEFEATED — 36-0 LEGEND!';
+    else if (wins >= 30) title = `🏆 ELITE — ${wins} wins / 36`;
+    else if (wins >= 24) title = `🏁 STRONG — ${wins} wins / 36 (Playoff lock)`;
+    else if (wins >= 16) title = `🏁 PLAYOFF BOUND — ${wins} wins / 36`;
+    else title = `${wins} wins / 36 — Try a stronger roster next time`;
+    $('finale-title').textContent = title;
+
+    // Badges
+    let badgesHTML = '';
+    if (wins === 36) badgesHTML += '<span class="badge gold">⭐ Perfect Season</span>';
+    if (state.season.bestStreak >= 10) badgesHTML += `<span class="badge green">🔥 ${state.season.bestStreak}-Race Streak</span>`;
+    if (wins >= 24) badgesHTML += '<span class="badge green">Championship 4</span>';
+    if (wins < 16) badgesHTML += '<span class="badge red">Missed Playoffs</span>';
+    $('finale-badges').innerHTML = badgesHTML;
+
+    // Podium (top 3 drafted drivers by points, but player = primary driver)
+    const podiumHTML = `
+        <div class="podium-place">
+            <div class="pos">YOUR #1</div>
+            <div class="nm">${state.season.primaryDriver.name}</div>
+            <div class="pts">${state.season.standings[state.season.primaryDriver.id]}</div>
+        </div>
+    `;
+    $('podium').innerHTML = podiumHTML;
+
+    // Full season log
+    $('finale-log').innerHTML = '';
+    state.season.results.forEach(r => {
+        const row = document.createElement('div');
+        row.className = `race-row ${r.win ? 'win' : 'loss'}`;
+        row.innerHTML = `
+            <div class="race-num">R${r.race}</div>
+            <div class="race-name">${r.name}</div>
+            <div class="race-result">P${r.pos}${r.win ? ' 🏆' : ''}</div>
+            <div class="race-pts">+${r.points}</div>
+        `;
+        $('finale-log').appendChild(row);
+    });
+}
+
+$('replay-btn').onclick = () => {
+    state = { phase: 'draft', drafted: [], selectedEra: 1, season: null, rng: null, seed: 0 };
+    renderTabs();
+    renderDrivers();
+    updateDraftUI();
+    $('race-log').innerHTML = '';
+    switchScreen('draft');
+};
+
+$('share-btn').onclick = () => {
+    const text = `🏁 My NASCAR 36-0 season: ${$('share-record').textContent}\n` +
+                 `Driver: ${state.season.primaryDriver.name} (OVR ${state.season.primaryDriver.ovr})\n` +
+                 `Best Streak: ${state.season.bestStreak}\n` +
+                 `#NASCAR36Zero #UndefeatedSeason`;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            $('share-btn').textContent = '✅ Copied!';
+            setTimeout(() => $('share-btn').textContent = '📋 Copy Share Text', 1500);
+        });
+    } else {
+        alert(text);
+    }
+};
+
+// --- INIT ---
+renderTabs();
+renderDrivers();
+updateDraftUI();
+</script>
+</body>
+</html>
