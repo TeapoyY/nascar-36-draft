@@ -783,28 +783,31 @@ function simulateRace(playerOVR, raceType, rng) {
     // Generate AI field of 35 other cars with realistic OVR distribution
     const field = [];
     for (let i = 0; i < 35; i++) {
-        // AI drivers weighted around OVR 78-86 (mid-tier teams)
-        const aiOVR = 75 + Math.floor(rng() * 14);
+        // AI drivers weighted around OVR 80-90 (mid-top tier teams)
+        const aiOVR = 80 + Math.floor(rng() * 11);
         field.push({ name: `AI #${i+2}`, ovr: aiOVR, type: raceType });
     }
 
     // Add player
     field.push({ name: 'YOU', ovr: playerOVR, type: raceType, isPlayer: true });
 
-    // Each car: simulate a position based on OVR + variance
+    // Each car: simulate a continuous score based on OVR + variance
+    // Continuous scoring ensures the best OVR reliably finishes at the top,
+    // not randomly tied with low-OVR AI cars that happened to roll 1 on a binary coin
     field.forEach(car => {
         const prob = winProb(car.ovr, raceType);
         // Variance: ±10% per race
         const variance = (rng() - 0.5) * 0.20;
         const adjusted = Math.min(0.97, Math.max(0.03, prob + variance));
-        car.score = rng() < adjusted ? 1 : 0;  // simple binary
+        // Use a continuous noise term as score
+        car.score = adjusted + (rng() - 0.5) * 0.20;
     });
 
     // Add pack-racing chaos for superspeedways (top 20 can win)
     if (raceType === 'superspeedway') {
         field.forEach(car => {
             if (!car.isPlayer && car.ovr < 85) {
-                car.score += rng() * 0.4;  // more chaos
+                car.score += rng() * 0.25;  // more chaos
             }
         });
     }
