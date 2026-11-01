@@ -5,7 +5,7 @@
 
 A 1-day HTML MVP sports-draft game, in the lineage of:
 - 🏆 [**38-0 Football Squad Draft**](https://github.com/TeapoyY/squad-draft-football) — NFL X-0 (2026-07-30)
-- 🏎️ [**F1 24-0**](https://github.com/TeapoyY/squad-draft-football) — F1 X-0 (2026-08-01)
+- 🏎 [**F1 24-0**](https://github.com/TeapoyY/squad-draft-football) — F1 X-0 (2026-08-01)
 - 🎮 [**PixelGP**](https://github.com/TeapoyY/app-pixelgp-web) — Turn-based racing + cards (2026-06-25)
 
 ## 🎮 How to Play
@@ -17,7 +17,7 @@ A 1-day HTML MVP sports-draft game, in the lineage of:
 4. **Simulate race-by-race** — win/lose is determined by OVR + track-type + variance
 5. **Share your record** — the 36-0 / 35-1 / 30-6 shareable template is the viral hook
 
-## 🏎️ The 96 Legends
+## 🏎 The 96 Legends
 
 6 eras × 16 drivers = 96 NASCAR legends, OVR-scaled 75-99:
 
@@ -50,15 +50,15 @@ This keeps the shareable "I almost did it" tension.
 |--------|--------|
 | **Blue ocean (Google Play)** | ✅ 0 draft apps for "nascar 36-0 draft" / "go undefeated racing season" (verified 2026-08-17) |
 | **NBA 82-0** | ❌ Vaulty / Reign Collective already占领 |
-| **NFL 38-0** | ⚠️ Sancar Media + we shipped (2026-07-30) |
-| **F1 24-0** | ⚠️ We shipped (2026-08-01) |
+| **NFL 38-0** | ⚠ Sancar Media + we shipped (2026-07-30) |
+| **F1 24-0** | ⚠ We shipped (2026-08-01) |
 | **NASCAR fanbase (75M+ US, "stock car country")** | ✅ Stable cultural footprint |
 | **Multi-track discipline** (speedway/short/road/street/superspeedway) | ✅ Adds strategic depth vs single-track F1 |
 | **Pack-racing chaos** (superspeedway) | ✅ "Gamble moments" — high risk / high reward |
 | **Public player names** | ✅ Historical records, no licensing |
 | **1-day MVP feasibility** | ✅ Single HTML, 96-row dataset |
 
-## 🛠️ Tech Stack
+## 🛠 Tech Stack
 
 - **Vanilla JS** — no npm, no build step
 - **Single HTML file** — 40 KB, all logic inline

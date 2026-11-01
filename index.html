@@ -151,6 +151,11 @@
     position: relative;
     user-select: none;
   }
+  button.driver-card {
+    color: inherit;
+    font: inherit;
+    text-align: left;
+  }
   .driver-card:hover:not(.drafted):not(.disabled) {
     border-color: var(--accent);
     transform: translateY(-2px);
@@ -439,6 +444,8 @@
     padding: 4px;
   }
   .roster-chip {
+    border: none;
+    font-family: inherit;
     background: var(--accent);
     color: #000;
     padding: 4px 10px;
@@ -470,7 +477,7 @@
 
     <div class="draft-status" id="draft-status">
       <div class="count" id="count-text">Pick 6 NASCAR Cup drivers</div>
-      <div class="help" id="help-text">Tap a driver to draft. Mix eras for synergy bonuses.</div>
+      <div class="help" id="help-text">Tap a driver to draft. Pick drivers from the same era for synergy bonuses.</div>
     </div>
 
     <div class="tabs" id="era-tabs"></div>
@@ -700,7 +707,7 @@ const ERA_LABELS = {
 
 // Realistic NASCAR Cup schedule (36 races, modern NextGen era ordering)
 const SCHEDULE = [
-    { name: "Daytona 500", track: "Daytona International Speedway", type: "speedway" },
+    { name: "Daytona 500", track: "Daytona International Speedway", type: "superspeedway" },
     { name: "Wreckers 400", track: "Auto Club Speedway", type: "intermediate" },
     { name: "Pennzoil 400", track: "Las Vegas Motor Speedway", type: "intermediate" },
     { name: "EchoPark 500", track: "Circuit of the Americas", type: "road" },
@@ -820,20 +827,7 @@ function simulateRace(playerOVR, raceType, rng) {
 
 // --- POINTS CALCULATION (Modern NASCAR: 40-2 with stage points) ---
 function pointsForPos(pos) {
-    // Win: 35 base + 5 bonus + stage points = ~40
-    // Top 5: 32-40
-    // Top 10: 22-32
-    // 11th-20th: 16-22
-    // 21st-36th: 1-15
-    if (pos === 1) return 40;
-    if (pos === 2) return 35;
-    if (pos === 3) return 34;
-    if (pos === 4) return 33;
-    if (pos === 5) return 32;
-    if (pos <= 10) return 31 - (pos - 6);
-    if (pos <= 15) return 23 - (pos - 11);
-    if (pos <= 20) return 19 - (pos - 16);
-    return Math.max(1, 14 - (pos - 21));
+    return pos === 1 ? 40 : Math.max(1, 37 - pos);
 }
 
 // --- UI HELPERS ---
@@ -873,7 +867,8 @@ function renderDrivers() {
     const drivers = DRIVERS.filter(d => d.era === state.selectedEra);
     drivers.forEach(d => {
         const drafted = state.drafted.some(x => x.id === d.id);
-        const card = document.createElement('div');
+        const card = document.createElement('button');
+        card.type = 'button';
         card.className = 'driver-card' + (drafted ? ' drafted' : '');
         card.innerHTML = `
             <div class="ovr">${d.ovr}</div>
@@ -917,7 +912,7 @@ function updateDraftUI() {
     const helpText = $('help-text');
     if (n === 0) {
         countText.textContent = 'Pick 6 NASCAR Cup drivers';
-        helpText.textContent = 'Tap a driver to draft. Mix eras for synergy bonuses.';
+        helpText.textContent = 'Tap a driver to draft. Pick drivers from the same era for synergy bonuses.';
         status.classList.remove('full');
     } else if (n < 6) {
         countText.textContent = `${n}/6 drivers drafted`;
@@ -930,14 +925,15 @@ function updateDraftUI() {
     }
 
     // Show chips
-    const existingChips = status.querySelectorAll('.roster-chip');
-    existingChips.forEach(c => c.remove());
+    status.querySelectorAll('.roster').forEach(roster => roster.remove());
     if (n > 0) {
         const rosterDiv = document.createElement('div');
         rosterDiv.className = 'roster';
         rosterDiv.style.marginTop = '10px';
         state.drafted.forEach(d => {
-            const chip = document.createElement('span');
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.setAttribute('aria-label', `Remove ${d.name} from roster`);
             chip.className = 'roster-chip';
             chip.textContent = `${d.name} ${d.ovr}`;
             chip.onclick = () => undraftDriver(d.id);
@@ -976,6 +972,9 @@ $('start-btn').onclick = () => {
     state.season.standings[state.season.primaryDriver.id] = 0;
     state.drafted.forEach(d => state.season.standings[d.id] = 0);
 
+    $('season-wins').textContent = '0';
+    $('season-streak').textContent = '0';
+    $('season-points').textContent = '0';
     switchScreen('season');
     $('race-counter').textContent = '1';
     $('race-counter-end') && ($('race-counter-end').textContent = '1');
@@ -1151,6 +1150,8 @@ $('share-btn').onclick = () => {
         navigator.clipboard.writeText(text).then(() => {
             $('share-btn').textContent = '✅ Copied!';
             setTimeout(() => $('share-btn').textContent = '📋 Copy Share Text', 1500);
+        }).catch(() => {
+            alert(text);
         });
     } else {
         alert(text);
